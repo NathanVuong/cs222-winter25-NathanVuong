@@ -97,11 +97,11 @@ namespace PeterDB {
         RC insertRecord(FileHandle &fileHandle, const std::vector<Attribute> &recordDescriptor, const void *data,
                         RID &rid);
         // Helpers
-        void* createRecord(const std::vector<Attribute> &recordDescriptor, const void *data, size_t &recordSize);
-        void appendRecordPage(FileHandle &fileHandle);
-        unsigned getInsertRecordPage(FileHandle &fileHandle, const size_t recordSize);
-        bool hasSpaceInPage(FileHandle &fileHandle, unsigned pageNum, const size_t recordSize);
-        void insertRecordIntoPage(FileHandle &fileHandle, unsigned pageNum, size_t recordSize, const void *recordData, RID &rid);
+        void* createRecord(const std::vector<Attribute> &recordDescriptor, const void *data, size_t &recordSize); // Create formatted record from given info
+        void appendRecordPage(FileHandle &fileHandle); // Append page w/ slot directory
+        unsigned getInsertRecordPage(FileHandle &fileHandle, const size_t recordSize); // Figures out which page number will be used
+        bool hasSpaceInPage(FileHandle &fileHandle, unsigned pageNum, const size_t recordSize); // Helper to above
+        void insertRecordIntoPage(FileHandle &fileHandle, unsigned pageNum, size_t recordSize, const void *recordData, RID &rid); // Insertion function
 
         // Read a record identified by the given rid.
         RC
