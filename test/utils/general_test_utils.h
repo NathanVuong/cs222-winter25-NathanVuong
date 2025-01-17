@@ -54,6 +54,44 @@ namespace PeterDBTesting {
         return s1 == s2;
     }
 
+    /*
+    static bool compareFileSizes(const std::string &fileName1, const std::string &fileName2) {
+        std::streampos s1, s2;
+
+        // Open and get size of the first file
+        std::ifstream in1(fileName1.c_str(), std::ifstream::in | std::ifstream::binary);
+        if (!in1.is_open()) {
+            std::cerr << "Error: Unable to open file " << fileName1 << std::endl;
+            return false;
+        }
+        in1.seekg(0, std::ifstream::end);
+        s1 = in1.tellg();
+        in1.close();
+
+        // Open and get size of the second file
+        std::ifstream in2(fileName2.c_str(), std::ifstream::in | std::ifstream::binary);
+        if (!in2.is_open()) {
+            std::cerr << "Error: Unable to open file " << fileName2 << std::endl;
+            return false;
+        }
+        in2.seekg(0, std::ifstream::end);
+        s2 = in2.tellg();
+        in2.close();
+
+        // Log the file sizes and the comparison
+        std::cout << "Comparing file sizes:" << std::endl;
+        std::cout << "  File: " << fileName1 << " | Size: " << s1 << " bytes" << std::endl;
+        std::cout << "  File: " << fileName2 << " | Size: " << s2 << " bytes" << std::endl;
+
+        if (s1 != s2) {
+            std::cerr << "Mismatch detected: " << fileName1 << " (size: " << s1 << ") != "
+                      << fileName2 << " (size: " << s2 << ")" << std::endl;
+        }
+
+        return s1 == s2;
+    }
+    */
+
     // Generate some test data and fill the provided buffer
     void generateData(void *buffer, size_t size, unsigned seed = 96, unsigned salt = 30) {
         for (unsigned i = 0; i < size; i++) {

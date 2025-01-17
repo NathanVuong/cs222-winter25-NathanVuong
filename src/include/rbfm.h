@@ -96,6 +96,12 @@ namespace PeterDB {
         // Insert a record into a file
         RC insertRecord(FileHandle &fileHandle, const std::vector<Attribute> &recordDescriptor, const void *data,
                         RID &rid);
+        // Helpers
+        void* createRecord(const std::vector<Attribute> &recordDescriptor, const void *data, size_t &recordSize);
+        void appendRecordPage(FileHandle &fileHandle);
+        unsigned getInsertRecordPage(FileHandle &fileHandle, const size_t recordSize);
+        bool hasSpaceInPage(FileHandle &fileHandle, unsigned pageNum, const size_t recordSize);
+        void insertRecordIntoPage(FileHandle &fileHandle, unsigned pageNum, size_t recordSize, const void *recordData, RID &rid);
 
         // Read a record identified by the given rid.
         RC

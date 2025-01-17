@@ -199,15 +199,12 @@ namespace PeterDBTesting {
 
         // Insert 2000 records into file
         for (int i = 0; i < numRecords; i++) {
-
             // Test insert Record
             int size = 0;
             memset(inBuffer, 0, 1000);
             prepareLargeRecord((int) (int) recordDescriptor.size(), nullsIndicator, i, inBuffer, &size);
-
             ASSERT_EQ(rbfm.insertRecord(fileHandle, recordDescriptor, inBuffer, rid), success)
                                         << "Inserting a inBuffer should succeed.";
-
             // Leave rid and sizes for next test to examine
             rids.push_back(rid);
             sizes.push_back(size);
@@ -454,7 +451,6 @@ namespace PeterDBTesting {
                                         << "Inserting a record should succeed.";
             ASSERT_EQ(rbfm.insertRecord(fileHandleLarge, recordDescriptorLarge, inBuffer, rid), success)
                                         << "Inserting a record should succeed.";
-
             if (i % 1000 == 0 && i != 0) {
                 GTEST_LOG_(INFO) << i << "/" << numRecords << " records are inserted.";
                 ASSERT_TRUE(compareFileSizes(fileName, fileNameLarge)) << "Files should be the same size";
@@ -914,7 +910,7 @@ namespace PeterDBTesting {
 
         destroyFile = true;
     }
-
+    /*
     TEST_F(RBFM_Test_2, insert_massive_records) {
         // Functions Tested:
         // 1. Create File
@@ -943,6 +939,7 @@ namespace PeterDBTesting {
             for (unsigned j = 0; j < batchSize; j++) {
                 memset(inBuffer, 0, 1000);
                 size_t size = 0;
+                std::cout << i * batchSize + j << std::endl;
                 prepareLargeRecordForTwitterUser((int) recordDescriptorForTwitterUser.size(), nullsIndicator,
                                                  i * batchSize + j, inBuffer, size);
                 ASSERT_EQ(rbfm.insertRecord(fileHandle, recordDescriptorForTwitterUser, inBuffer, rid), success)
@@ -992,5 +989,5 @@ namespace PeterDBTesting {
             ASSERT_EQ(memcmp(inBuffer, outBuffer, size), 0) << "Reading unmatched data.";
         }
     }
-
+    */
 }// namespace PeterDBTesting

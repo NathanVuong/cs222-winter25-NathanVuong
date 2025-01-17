@@ -1,6 +1,10 @@
 #include "src/include/pfm.h"
 #include "test/utils/pfm_test_utils.h"
 
+// Complile: g++ -g -O0 -o test_pfm -I./ test/pfm/pfmtest_public.cc -lpthread
+// g++ -g -O0 -o test_pfm -I./ Documents/CS122C/PeterDB-template/test/pfm/pfmtest_public.cc -lpthread
+// Test: valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes test/pfm/pfmtest_public.cc
+
 namespace PeterDBTesting {
 
     TEST_F (PFM_File_Test, create_file) {

@@ -2,8 +2,11 @@
 #define _pfm_h_
 
 #define PAGE_SIZE 4096
+#define SLOT_DIRECTORY_ENTRY_SIZE (2 * sizeof(unsigned))
 
 #include <string>
+#include <iostream>
+#include <fstream>
 
 namespace PeterDB {
 
@@ -35,16 +38,20 @@ namespace PeterDB {
         unsigned readPageCounter;
         unsigned writePageCounter;
         unsigned appendPageCounter;
+        std::string fileName; // Passed by PagedFileManager
 
         FileHandle();                                                       // Default constructor
+        explicit FileHandle(std::string newFileName);                       // Explicit constructor w/ fileName
         ~FileHandle();                                                      // Destructor
 
+        RC setFileName(std::string newFileName);                            // Set file name property
         RC readPage(PageNum pageNum, void *data);                           // Get a specific page
         RC writePage(PageNum pageNum, const void *data);                    // Write a specific page
         RC appendPage(const void *data);                                    // Append a specific page
         unsigned getNumberOfPages();                                        // Get the number of pages in the file
         RC collectCounterValues(unsigned &readPageCount, unsigned &writePageCount,
                                 unsigned &appendPageCount);                 // Put current counter values into variables
+        RC updateFileCounters();
     };
 
 } // namespace PeterDB
