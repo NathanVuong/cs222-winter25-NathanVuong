@@ -910,7 +910,7 @@ namespace PeterDBTesting {
 
         destroyFile = true;
     }
-    /*
+
     TEST_F(RBFM_Test_2, insert_massive_records) {
         // Functions Tested:
         // 1. Create File
@@ -989,5 +989,5 @@ namespace PeterDBTesting {
             ASSERT_EQ(memcmp(inBuffer, outBuffer, size), 0) << "Reading unmatched data.";
         }
     }
-    */
+
 }// namespace PeterDBTesting
