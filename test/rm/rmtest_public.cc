@@ -1,4 +1,9 @@
 #include "test/utils/rm_test_util.h"
+#include <cstring>
+#include <string>
+#include <cstdlib>
+#include <vector>
+#include <cmath>
 
 namespace PeterDBTesting {
     TEST_F(RM_Catalog_Test, create_and_delete_tables) {
@@ -1840,7 +1845,6 @@ namespace PeterDBTesting {
 
     }
 
-    /*
     TEST_F(RM_Version_Test, extra_multiple_add_drop_mix) {
         // Extra Credit Test Case - Functions Tested:
         // 1. Insert tuple
@@ -2119,5 +2123,4 @@ namespace PeterDBTesting {
         checkPrintRecord("emp_name: Peter Anteater, age: 34, height: 175.3, salary: 24123.90, ssn: 123479765",
                          stream.str());
     }
-    */
 } // namespace PeterDBTesting
