@@ -54,16 +54,22 @@ namespace PeterDB {
 
     class RBFM_ScanIterator {
     public:
-        RBFM_ScanIterator() = default;;
+        RBFM_ScanIterator(std::string fileName): fileName(fileName), fileHandle(nullptr), currentPage(0), currentSlot(0) {}
 
-        ~RBFM_ScanIterator() = default;;
-
-        // Never keep the results in the memory. When getNextRecord() is called,
-        // a satisfying record needs to be fetched from the file.
-        // "data" follows the same format as RecordBasedFileManager::insertRecord().
-        RC getNextRecord(RID &rid, void *data) { return RBFM_EOF; };
-
-        RC close() { return -1; };
+        ~RBFM_ScanIterator() = default;
+        // Added methods
+        RC initialize(std::string fileName);
+        RC setRecordDescriptor(const std::vector<Attribute> &recordDescriptor);
+        RC insertData(const void *data, RID &rid, const std::vector<Attribute> &filteredRecordDescriptor);
+        RC getNextRecord(RID &rid, void *data);
+        RC close();
+    // Added properties
+    private:
+        std::string fileName;
+        FileHandle *fileHandle;
+        unsigned currentPage;
+        unsigned currentSlot;
+        std::vector<Attribute> recordDescriptor;
     };
 
     class RecordBasedFileManager {
@@ -102,6 +108,7 @@ namespace PeterDB {
         unsigned getInsertRecordPage(FileHandle &fileHandle, const size_t recordSize); // Figures out which page number will be used
         bool hasSpaceInPage(FileHandle &fileHandle, unsigned pageNum, const size_t recordSize); // Helper to above
         void insertRecordIntoPage(FileHandle &fileHandle, unsigned pageNum, size_t recordSize, const void *recordData, RID &rid); // Insertion function
+        void log(const std::string &message);
 
         // Read a record identified by the given rid.
         RC
@@ -122,9 +129,14 @@ namespace PeterDB {
         // Delete a record identified by the given rid.
         RC deleteRecord(FileHandle &fileHandle, const std::vector<Attribute> &recordDescriptor, const RID &rid);
 
+        RC deleteTombstone(FileHandle &fileHandle, const RID &rid);
+
         // Assume the RID does not change after an update
         RC updateRecord(FileHandle &fileHandle, const std::vector<Attribute> &recordDescriptor, const void *data,
                         const RID &rid);
+
+        // Checks if input RID is a tombstone, and if so returns 1 and fills the next RID into the output RID
+        RC isTombstone(FileHandle &fileHandle, const RID &inputRID, RID &outputRID);
 
         // Read an attribute given its name and the rid.
         RC readAttribute(FileHandle &fileHandle, const std::vector<Attribute> &recordDescriptor, const RID &rid,
@@ -138,6 +150,13 @@ namespace PeterDB {
                 const void *value,                    // used in the comparison
                 const std::vector<std::string> &attributeNames, // a list of projected attributes
                 RBFM_ScanIterator &rbfm_ScanIterator);
+
+        void *createFilteredRecord(const std::vector<Attribute> &fullDescriptor,
+                                   const std::vector<Attribute> &filteredDescriptor, const void *recordData,
+                                   size_t &recordSize);
+
+        bool checkCondition(const void *recordData, const std::vector<Attribute> &recordDescriptor,
+                            const std::string &conditionAttribute, CompOp compOp, const void *value);
 
     protected:
         RecordBasedFileManager();                                                   // Prevent construction

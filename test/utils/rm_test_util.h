@@ -119,7 +119,6 @@ namespace PeterDBTesting {
         PeterDB::RelationManager &rm = PeterDB::RelationManager::instance();
 
         void SetUp() override {
-
             if (!fileExists(tableName)) {
 
                 // Try to delete the System Catalog.

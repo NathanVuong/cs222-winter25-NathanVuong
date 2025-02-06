@@ -16,10 +16,16 @@ namespace PeterDB {
 
         ~RM_ScanIterator();
 
+        // Initialize iterator so it's like a wrapper around the other iterator
+        void initialize(RBFM_ScanIterator *rbfmIter);
+
         // "data" follows the same format as RelationManager::insertTuple()
         RC getNextTuple(RID &rid, void *data);
 
         RC close();
+
+        // Adding pointer of other iterator so I can reuse methods
+        RBFM_ScanIterator *rbfmIter;
     };
 
     // RM_IndexScanIterator is an iterator to go through index entries
@@ -36,6 +42,8 @@ namespace PeterDB {
     // Relation Manager
     class RelationManager {
     public:
+        unsigned currentTableID = 0;
+        bool catalogExists = false;
         static RelationManager &instance();
 
         RC createCatalog();
@@ -45,6 +53,8 @@ namespace PeterDB {
         RC createTable(const std::string &tableName, const std::vector<Attribute> &attrs);
 
         RC deleteTable(const std::string &tableName);
+
+        RC findTableId(std::string tableName, int &tableId);
 
         RC getAttributes(const std::string &tableName, std::vector<Attribute> &attrs);
 
@@ -95,7 +105,6 @@ namespace PeterDB {
         ~RelationManager();                                                 // Prevent unwanted destruction
         RelationManager(const RelationManager &);                           // Prevent construction by copying
         RelationManager &operator=(const RelationManager &);                // Prevent assignment
-
     };
 
 } // namespace PeterDB

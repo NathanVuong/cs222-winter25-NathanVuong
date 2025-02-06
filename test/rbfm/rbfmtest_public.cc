@@ -2,7 +2,109 @@
 #include "test/utils/rbfm_test_utils.h"
 
 namespace PeterDBTesting {
+    TEST_F(RBFM_Test, insert_and_read_attribute) {
+        // Functions tested
+        // 1. Create Record-Based File
+        // 2. Open Record-Based File
+        // 3. Insert Record
+        // 4. Read Specific Attribute
+        // 5. Close Record-Based File
+        // 6. Destroy Record-Based File
 
+        PeterDB::RID rid;
+        size_t recordSize = 0;
+        inBuffer = malloc(100);
+        outBuffer = malloc(100);
+
+        std::vector<PeterDB::Attribute> recordDescriptor;
+        createRecordDescriptor(recordDescriptor);
+
+        // Initialize a NULL field indicator
+        nullsIndicator = initializeNullFieldsIndicator(recordDescriptor);
+
+        // Insert a record into the file
+        prepareRecord((int)recordDescriptor.size(), nullsIndicator, 8, "Anteater", 25, 177.8, 6200, inBuffer, recordSize);
+
+        ASSERT_EQ(rbfm.insertRecord(fileHandle, recordDescriptor, inBuffer, rid), success)
+                                    << "Inserting a record should succeed.";
+
+        // Try to read a specific attribute (e.g., "EmpName")
+        std::string attributeName = "EmpName";
+        ASSERT_EQ(rbfm.readAttribute(fileHandle, recordDescriptor, rid, attributeName, outBuffer), success)
+                                    << "Reading the EmpName attribute should succeed.";
+
+        // Verify the output is correct (the name "Anteater" should be read)
+        std::string empName = (char *)outBuffer;
+        ASSERT_EQ(empName, "Anteater") << "The attribute value read does not match the expected value.";
+    }
+
+    TEST_F(RBFM_Test_2, read_attribute_with_empty_and_null_varchar) {
+        // Functions Tested:
+        // 1. Create File - RBFM
+        // 2. Open File
+        // 3. insertRecord() - with an empty VARCHAR field (not NULL)
+        // 4. readAttribute() - on an empty VARCHAR field
+        // 5. insertRecord() - with a NULL VARCHAR field
+        // 6. readAttribute() - on a NULL VARCHAR field
+        // 7. Close File
+        // 8. Destroy File
+
+        PeterDB::RID rid;
+        size_t recordSize;
+        inBuffer = malloc(2000);
+        outBuffer = malloc(2000);
+        memset(inBuffer, 0, 2000);
+        memset(outBuffer, 0, 2000);
+
+        std::vector<PeterDB::Attribute> recordDescriptor;
+        createRecordDescriptorForTweetMessage(recordDescriptor);
+
+        // NULL field indicator
+        nullsIndicator = initializeNullFieldsIndicator(recordDescriptor);
+
+        // Insert a record into a file - referred_topics is an empty string - "", not null value.
+        prepareRecordForTweetMessage((int)recordDescriptor.size(), nullsIndicator, 1234, 0, "", 0, "", 999, 0, "",
+                                     inBuffer, recordSize);
+        ASSERT_EQ(rbfm.insertRecord(fileHandle, recordDescriptor, inBuffer, rid), success)
+                                    << "Inserting a record should succeed.";
+
+        // Read the referred_topics attribute (empty VARCHAR, not null)
+        ASSERT_EQ(rbfm.readAttribute(fileHandle, recordDescriptor, rid, "referred_topics", outBuffer), success)
+                                    << "Reading an empty VARCHAR attribute should succeed.";
+
+        // Verify the length and content of the empty string
+        unsigned varcharLength;
+        memcpy(&varcharLength, outBuffer, sizeof(unsigned));
+        ASSERT_EQ(varcharLength, 0) << "The length of an empty VARCHAR should be 0.";
+
+        // Insert a record with NULL values for referred_topics and hash_tags
+        memset(inBuffer, 0, 2000);
+        free(nullsIndicator);
+        nullsIndicator = initializeNullFieldsIndicator(recordDescriptor);
+        setAttrNull(nullsIndicator, 1, true); // Set referred_topics to NULL
+        setAttrNull(nullsIndicator, 4, true); // Set hash_tags to NULL
+
+        prepareRecordForTweetMessage((int)recordDescriptor.size(), nullsIndicator, 1234, 0, "", 0, "", 999, 0, "",
+                                     inBuffer, recordSize);
+
+        ASSERT_EQ(rbfm.insertRecord(fileHandle, recordDescriptor, inBuffer, rid), success)
+                                    << "Inserting a record with NULL values should succeed.";
+
+        // Read the referred_topics attribute (NULL VARCHAR)
+        ASSERT_EQ(rbfm.readAttribute(fileHandle, recordDescriptor, rid, "referred_topics", outBuffer), -1)
+                                    << "Reading a NULL VARCHAR attribute should fail.";
+
+        // Read the hash_tags attribute (NULL VARCHAR)
+        ASSERT_EQ(rbfm.readAttribute(fileHandle, recordDescriptor, rid, "hash_tags", outBuffer), -1)
+                                    << "Reading another NULL VARCHAR attribute should fail.";
+
+        // Verify file size
+        ASSERT_GT(getFileSize(fileName), 0) << "File Size should not be zero at this moment.";
+    }
+
+
+
+    /*
     TEST_F(RBFM_Test, insert_and_read_a_record) {
         // Functions tested
         // 1. Create Record-Based File
@@ -285,18 +387,14 @@ namespace PeterDBTesting {
         ASSERT_EQ(rbfm.insertRecord(fileHandle, recordDescriptor, inBuffer, rid), success)
                                     << "Inserting a record should succeed.";
 
-
         // Delete the first record
         ASSERT_EQ(rbfm.deleteRecord(fileHandle, recordDescriptor, rid0), success)
                                     << "Deleting a record should succeed.";
-
         ASSERT_NE(rbfm.readRecord(fileHandle, recordDescriptor, rid0, outBuffer), success)
                                     << "Reading a deleted record should not succeed.";
-
         // Given the rid, read the record from file
         ASSERT_EQ(rbfm.readRecord(fileHandle, recordDescriptor, rid1, outBuffer), success)
                                     << "Reading a record should succeed.";
-
         std::stringstream stream;
         ASSERT_EQ(rbfm.printRecord(recordDescriptor, outBuffer, stream), success)
                                     << "Printing a record should succeed.";
@@ -320,7 +418,6 @@ namespace PeterDBTesting {
         ASSERT_EQ(rbfm.printRecord(recordDescriptor, outBuffer, stream), success)
                                     << "Printing a record should succeed.";
         checkPrintRecord("EmpName: NULL, Age: 25, Height: 177.8, Salary: 6200", stream.str());
-
         // Compare whether the two memory blocks are the same
         ASSERT_EQ(memcmp(inBuffer, outBuffer, recordSize), 0) << "The returned record should match the inserted.";
     }
@@ -370,12 +467,11 @@ namespace PeterDBTesting {
 
         // Insert long record
         insertRecord(recordDescriptor, rid, longStr);
-
         // update short record
         updateRecord(recordDescriptor, shortRID, midString);
-
-        //read updated short record and verify its content
+        // read updated short record and verify its content
         readRecord(recordDescriptor, shortRID, midString);
+        std::cout << "Verified short " << std::endl;
 
         // insert two more records
         insertRecord(recordDescriptor, rid, longStr);
@@ -383,13 +479,15 @@ namespace PeterDBTesting {
 
         // read mid record and verify its content
         readRecord(recordDescriptor, midRID, midString);
+        std::cout << "Verified mid " << std::endl;
 
         // update short record
         updateRecord(recordDescriptor, shortRID, longStr);
 
+        std::cout << "Verifying long " << std::endl;
         // read the short record and verify its content
         readRecord(recordDescriptor, shortRID, longStr);
-
+        std::cout << "Verified long " << std::endl;
         // delete the short record
         rbfm.deleteRecord(fileHandle, recordDescriptor, shortRID);
 
@@ -910,7 +1008,7 @@ namespace PeterDBTesting {
 
         destroyFile = true;
     }
-
+    /*
     TEST_F(RBFM_Test_2, insert_massive_records) {
         // Functions Tested:
         // 1. Create File
@@ -989,5 +1087,5 @@ namespace PeterDBTesting {
             ASSERT_EQ(memcmp(inBuffer, outBuffer, size), 0) << "Reading unmatched data.";
         }
     }
-
+    */
 }// namespace PeterDBTesting

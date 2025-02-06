@@ -50,10 +50,9 @@ namespace PeterDB {
         // Check that file can be opened
         fileHandle.setFileName(fileName);
         std::fstream file(fileName, std::ios::in | std::ios::out | std::ios::binary);
-        if (!file.is_open()) {
+        if (!file.good()) {
             return -1;
         }
-
         // Check if the file has less than one full page (no metadata page exists)
         file.seekg(0, std::ios::end);
         unsigned fileSize = file.tellg();
