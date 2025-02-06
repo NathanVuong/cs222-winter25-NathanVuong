@@ -173,7 +173,7 @@ namespace PeterDBTesting {
         std::string res;
         for (auto const &pair: inMap)
             res += pair.first + ": " + pair.second + ", ";
-        res.substr(res.find_last_of(", "));
+        res = res.substr(res.find_last_of(", "));
         return trim_copy(res.substr(0, res.find_last_of(", ") - 1));
     }
 
