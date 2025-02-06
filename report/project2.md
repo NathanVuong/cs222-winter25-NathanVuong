@@ -88,6 +88,7 @@
 
 ### 9. Other (optional)
 - Freely use this section to tell us about things that are related to the project 1, but not related to the other sections (optional)
+  - Instead of have the RBFM check every file from the start for a place to insert a record, I will now have it count backwards by 20. This is due to excessive search time and wasted checking on files which are already full or very unlikely to hold it.
 
 
 

@@ -170,7 +170,7 @@ namespace PeterDB {
 
     // Get amount of free space given record size
     unsigned RecordBasedFileManager::getInsertRecordPage(FileHandle &fileHandle, const size_t recordSize) {
-        unsigned totalPages = fileHandle.getNumberOfPages();
+        int totalPages = fileHandle.getNumberOfPages();
         // Check the last page first
         if (totalPages > 0) {
             unsigned lastPage = totalPages - 1;
@@ -179,7 +179,7 @@ namespace PeterDB {
             }
         }
         // Check others
-        for (unsigned pageNum = 0; pageNum < totalPages - 1; pageNum++) {
+        for (int pageNum = totalPages - 2; pageNum >= 0; pageNum -= 20) {
             if (hasSpaceInPage(fileHandle, pageNum, recordSize)) {
                 return pageNum;
             }

@@ -1326,7 +1326,7 @@ namespace PeterDBTesting {
 
         bufSize = 1000;
         size_t tupleSize = 0;
-        int numTuples = 1000;
+        int numTuples = 100000;
 
         inBuffer = malloc(bufSize);
         outBuffer = malloc(bufSize);
