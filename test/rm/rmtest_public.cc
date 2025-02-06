@@ -1367,7 +1367,6 @@ namespace PeterDBTesting {
 
         }
     }
-    */
 
     TEST_F(RM_Catalog_Scan_Test_2, scan) {
         // Functions tested
