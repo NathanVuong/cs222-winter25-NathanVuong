@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <cmath>
 #include <utility>
+#include <string>
+#include <cstdlib>
+#include <vector>
 
 
 namespace PeterDB {
