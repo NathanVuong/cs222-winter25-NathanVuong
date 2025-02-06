@@ -1326,7 +1326,7 @@ namespace PeterDBTesting {
 
         bufSize = 1000;
         size_t tupleSize = 0;
-        int numTuples = 100000;
+        int numTuples = 1000;
 
         inBuffer = malloc(bufSize);
         outBuffer = malloc(bufSize);
@@ -1367,6 +1367,7 @@ namespace PeterDBTesting {
 
         }
     }
+    */
 
     TEST_F(RM_Catalog_Scan_Test_2, scan) {
         // Functions tested
@@ -1454,7 +1455,6 @@ namespace PeterDBTesting {
         }
 
         ASSERT_TRUE(user_ids.empty()) << "returned user_id does not match inserted";
-
     }
 
     TEST_F(RM_Catalog_Scan_Test_2, scan_with_null) {

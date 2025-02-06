@@ -6,7 +6,7 @@
 #include <string>
 #include <cstdlib>
 #include <vector>
-
+#include <algorithm>
 
 namespace PeterDB {
     RecordBasedFileManager &RecordBasedFileManager::instance() {
@@ -981,14 +981,6 @@ namespace PeterDB {
                     memcpy(&recordValue, dataPtr, sizeof(int));
                     memcpy(&conditionValue, value, sizeof(int));
                     switch (compOp) {
-                        /*
-                        case EQ_OP: return conditionValue == recordValue;
-                        case LT_OP: return conditionValue < recordValue;
-                        case LE_OP: return conditionValue <= recordValue;
-                        case GT_OP: return conditionValue > recordValue;
-                        case GE_OP: return conditionValue >= recordValue;
-                        case NE_OP: return conditionValue != recordValue;
-                        */
                         case EQ_OP: return recordValue == conditionValue;
                         case LT_OP: return recordValue < conditionValue;
                         case LE_OP: return recordValue <= conditionValue;
@@ -1015,9 +1007,10 @@ namespace PeterDB {
                 else if (attribute.type == TypeVarChar) {
                     memcpy(&varCharLength, dataPtr, sizeof(unsigned));
                     std::string recordValue(dataPtr + sizeof(unsigned), varCharLength);
-
-                    // Skip the length part for comparison
-                    const char* conditionValue = static_cast<const char*>(value);
+                    std::string conditionValue = (char*)value;
+                    if (recordValue.empty()) {
+                        return false;
+                    }
                     switch (compOp) {
                         case EQ_OP: return recordValue == conditionValue;
                         case LT_OP: return recordValue < conditionValue;
@@ -1025,7 +1018,7 @@ namespace PeterDB {
                         case GT_OP: return recordValue > conditionValue;
                         case GE_OP: return recordValue >= conditionValue;
                         case NE_OP: return recordValue != conditionValue;
-                        default: return true;
+                        default: return false;
                     }
                 }
             }
