@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "src/include/rbfm.h"
+#include "rbfm.h"
 
 namespace PeterDB {
 #define RM_EOF (-1)  // end of a scan operator

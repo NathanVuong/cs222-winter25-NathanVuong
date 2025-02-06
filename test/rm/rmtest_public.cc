@@ -1,9 +1,5 @@
+#include "src/include/rm.h"
 #include "test/utils/rm_test_util.h"
-#include <cstring>
-#include <string>
-#include <cstdlib>
-#include <vector>
-#include <cmath>
 
 namespace PeterDBTesting {
     TEST_F(RM_Catalog_Test, create_and_delete_tables) {
