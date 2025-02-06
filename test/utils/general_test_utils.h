@@ -10,7 +10,6 @@
 #include <random>
 #include <dirent.h>
 
-#include "glog/logging.h"
 #include "gtest/gtest.h"
 #include "ordered_map.h"
 
