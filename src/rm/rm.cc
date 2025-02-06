@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 namespace PeterDB {
     RelationManager &RelationManager::instance() {
