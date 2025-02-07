@@ -528,9 +528,9 @@ namespace PeterDB {
                         int varcharLength;
                         memcpy(&varcharLength, recordData + offset, sizeof(int));
                         offset += sizeof(int);
-                        char columnName[varcharLength];
+                        char columnName[varcharLength + 1];
                         memcpy(columnName, recordData + offset, varcharLength);
-                        // columnName[varcharLength] = '\0';
+                        columnName[varcharLength] = '\0';
                         attr.name = std::string(columnName);
                         offset += varcharLength;
 
