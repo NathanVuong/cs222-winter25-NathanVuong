@@ -7,9 +7,6 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#include <cstdlib>
-#include <algorithm>
-
 
 
 namespace PeterDB {
