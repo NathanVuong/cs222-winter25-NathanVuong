@@ -1,20 +1,15 @@
 #include "../include/rm.h"
-#include <dirent.h>
 #include <cstring>
-#include <cstdint>
 #include <cmath>
-#include <utility>
 #include <string>
-#include <cstdlib>
 #include <vector>
-#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <cassert>
-#include <iterator>
 #include <stdexcept>
-#include <memory>
+#include <cstdlib>
+#include <algorithm>
+
 
 
 namespace PeterDB {
@@ -501,8 +496,6 @@ namespace PeterDB {
             return -1;
         }
 
-        RID rid;
-        char recordData[PAGE_SIZE];
         unsigned numPages = columnsFileHandle.getNumberOfPages();
 
         for (unsigned pageNum = 0; pageNum < numPages; pageNum++) {
@@ -515,6 +508,8 @@ namespace PeterDB {
             memcpy(&numSlots, page + PAGE_SIZE - sizeof(unsigned), sizeof(unsigned));
 
             for (unsigned slotNum = 0; slotNum < numSlots; slotNum++) {
+                RID rid;
+                char recordData[PAGE_SIZE];
                 rid.pageNum = pageNum;
                 rid.slotNum = slotNum;
 
@@ -526,9 +521,9 @@ namespace PeterDB {
                         int varcharLength;
                         memcpy(&varcharLength, recordData + offset, sizeof(int));
                         offset += sizeof(int);
-                        char columnName[varcharLength + 1];
+                        char columnName[varcharLength];
                         memcpy(columnName, recordData + offset, varcharLength);
-                        columnName[varcharLength] = '\0';
+                        // columnName[varcharLength] = '\0';
                         attr.name = std::string(columnName);
                         offset += varcharLength;
 
