@@ -2,7 +2,6 @@
 #include "test/utils/rm_test_util.h"
 
 namespace PeterDBTesting {
-    /*
     TEST_F(RM_Catalog_Test, create_and_delete_tables) {
 
         // Try to delete the System Catalog.
@@ -406,7 +405,6 @@ namespace PeterDBTesting {
                                     << "RelationManager::scan() should not succeed on a deleted table.";
         destroyFile = false; // the table is already deleted.
     }
-    */
 
     TEST_F(RM_Large_Table_Test, insert_large_tuples) {
         // Functions Tested for large tables:
@@ -667,7 +665,7 @@ namespace PeterDBTesting {
         ASSERT_EQ(count, 3000) << "Number of scanned tuples is incorrect.";
 
     }
-    /*
+
     TEST_F(RM_Scan_Test, conditional_scan) {
         // Functions Tested:
         // 1. Conditional scan
@@ -925,7 +923,6 @@ namespace PeterDBTesting {
 
     }
 
-    /*
     TEST_F(RM_Catalog_Scan_Test_2, read_attributesT) {
         // Functions tested
         // 1. Insert 100,000 tuples
@@ -1319,8 +1316,7 @@ namespace PeterDBTesting {
         ASSERT_EQ(rmsi.close(), success) << "RM_ScanIterator should be able to close.";
 
     }
-    */
-    /*
+
     TEST_F(RM_Catalog_Scan_Test_2, read_attributes) {
         // Functions tested
         // 1. Insert 100,000 tuples
@@ -2119,5 +2115,5 @@ namespace PeterDBTesting {
 
         checkPrintRecord("emp_name: Peter Anteater, age: 34, height: 175.3, salary: 24123.90, ssn: 123479765",
                          stream.str());
-    } */
+    }
 } // namespace PeterDBTesting
