@@ -1,12 +1,22 @@
 #include "../include/rm.h"
+#include <dirent.h>
 #include <cstring>
+#include <cstdint>
 #include <cmath>
+#include <utility>
 #include <string>
+#include <cstdlib>
 #include <vector>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cassert>
+#include <iterator>
 #include <stdexcept>
+#include <memory>
+#include <cstdlib>
+#include <algorithm>
 
 
 namespace PeterDB {

@@ -7,6 +7,14 @@
 #include <cstdlib>
 #include <vector>
 #include <algorithm>
+#include <dirent.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <cassert>
+#include <iterator>
+#include <stdexcept>
+#include <memory>
 
 namespace PeterDB {
     RecordBasedFileManager &RecordBasedFileManager::instance() {
