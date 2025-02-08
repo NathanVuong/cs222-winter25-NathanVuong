@@ -785,7 +785,7 @@ namespace PeterDB {
         if (fileHandle) {
             RecordBasedFileManager &rbfm = RecordBasedFileManager::instance();
             rbfm.closeFile(*fileHandle);
-            // rbfm.destroyFile(fileName);
+            rbfm.destroyFile(fileName);
             delete fileHandle;
             fileHandle = nullptr;
             currentPage = 0;

@@ -483,8 +483,10 @@ namespace PeterDB {
     }
 
     RC RelationManager::getAttributes(const std::string &tableName, std::vector<Attribute> &attrs) {
+        std::cout << "Trying to read attribute from: " << tableName << std::endl;
         int tableId;
         if (findTableId(tableName, tableId) != 0) {
+            std::cout << "Table " << tableName << " not found" << std::endl;
             return -1;
         }
 
@@ -500,6 +502,7 @@ namespace PeterDB {
         };
 
         if (rbfm.openFile("Columns", columnsFileHandle) != 0) {
+            std::cout << "Opening columns failed" << std::endl;
             return -1;
         }
 
@@ -508,6 +511,7 @@ namespace PeterDB {
         for (unsigned pageNum = 0; pageNum < numPages; pageNum++) {
             char page[PAGE_SIZE];
             if (columnsFileHandle.readPage(pageNum, page) != 0) {
+                std::cout << "Reading page failed: " << pageNum << std::endl;
                 return -1;
             }
 
@@ -599,16 +603,19 @@ namespace PeterDB {
     RC RelationManager::readTuple(const std::string &tableName, const RID &rid, void *data) {
         int tableID;
         if (findTableId(tableName, tableID) == -1) {
+            std::cout << "TableID for " << tableName << " not found" << std::endl;
             return -1;
         }
         RecordBasedFileManager &rbfm = RecordBasedFileManager::instance();
         FileHandle tableHandle;
         if (rbfm.openFile(tableName, tableHandle) == -1) {
+            std::cout << "Opening " << tableName << " failed" << std::endl;
             return -1;
         }
         std::vector<Attribute> recordDescriptor;
         getAttributes(tableName, recordDescriptor);
         if (rbfm.readRecord(tableHandle, recordDescriptor, rid, data) == -1) {
+            std::cout << "Reading record for " << tableName << " failed" << std::endl;
             return -1;
         }
         return 0;
@@ -646,15 +653,18 @@ namespace PeterDB {
         RecordBasedFileManager &rbfm = RecordBasedFileManager::instance();
         FileHandle tableHandle;
         if (rbfm.openFile(tableName, tableHandle) == -1) {
+            std::cout << "Opening " << tableName << " failed" << std::endl;
             return -1;
         }
         std::vector<Attribute> recordDescriptor;
         if (getAttributes(tableName, recordDescriptor) == -1) {
+            std::cout << "Getting attributes failed" << std::endl;
             return -1;
         }
         rm_ScanIterator.rbfmIter = new RBFM_ScanIterator(tableName + "_scan");
         rm_ScanIterator.rbfmIter->initialize(tableName + "_scan");
         if (rbfm.scan(tableHandle, recordDescriptor, conditionAttribute, compOp, value, attributeNames, *rm_ScanIterator.rbfmIter) != 0) {
+            std::cout << "Scanning failed" << std::endl;
             return -1;
         }
         return 0;
