@@ -332,9 +332,12 @@ namespace PeterDB {
 
 
     RC RelationManager::deleteTable(const std::string &tableName) {
+        /*
         if (!catalogExists) {
+            std::cout << "Catalog DNE" << std::endl;
             return -1;
         }
+        */
         RecordBasedFileManager &rbfm = RecordBasedFileManager::instance();
         FileHandle tablesFileHandle, columnsFileHandle;
 
@@ -354,6 +357,7 @@ namespace PeterDB {
 
         // Open Tables file
         if (rbfm.openFile("Tables", tablesFileHandle) != 0) {
+            std::cout << "Failed to open tables file" << std::endl;
             return -1;
         }
 
@@ -366,6 +370,7 @@ namespace PeterDB {
         for (unsigned pageNum = 0; pageNum < numPages; pageNum++) {
             char page[PAGE_SIZE];
             if (tablesFileHandle.readPage(pageNum, page) != 0) {
+                std::cout << "Failed to read tables page " << pageNum << std::endl;
                 return -1;
             }
 
@@ -382,8 +387,11 @@ namespace PeterDB {
                 rid.slotNum = slotNum;
 
                 if (rbfm.readRecord(tablesFileHandle, tablesDescriptor, rid, recordData) == 0) {
-                    // rbfm.printRecord(tablesDescriptor, recordData, std::cout);
-                    if (rbfm.checkCondition(recordData, tablesDescriptor, "table-name", EQ_OP, tableName.c_str())) {
+                    unsigned tableNameLength = tableName.length();
+                    char value[sizeof(unsigned) + tableNameLength];
+                    memcpy(value, &tableNameLength, sizeof(unsigned));
+                    memcpy(value + sizeof(unsigned), tableName.c_str(), tableNameLength);
+                    if (rbfm.checkCondition(recordData, tablesDescriptor, "table-name", EQ_OP, value)) {
                         unsigned nullByteOffset = ceil((double)tablesDescriptor.size() / 8);
                         memcpy(&tableIdToDelete, recordData + nullByteOffset, sizeof(int));  // Extract table-id
                         rbfm.deleteRecord(tablesFileHandle, tablesDescriptor, rid);
@@ -396,6 +404,7 @@ namespace PeterDB {
         }
 
         if (!tableFound) {
+            std::cout << "Table " << tableName << " not found" << std::endl;
             return -1;
         }
 
@@ -404,6 +413,7 @@ namespace PeterDB {
 
         // Open Columns file
         if (rbfm.openFile("Columns", columnsFileHandle) != 0) {
+            std::cout << "Failed to open columns file" << std::endl;
             return -1;
         }
 
@@ -412,6 +422,7 @@ namespace PeterDB {
         for (unsigned pageNum = 0; pageNum < numPages; pageNum++) {
             char page[PAGE_SIZE];
             if (columnsFileHandle.readPage(pageNum, page) != 0) {
+                std::cout << "Failed to read columns page " << pageNum << std::endl;
                 return -1;
             }
 
@@ -471,7 +482,11 @@ namespace PeterDB {
                 rid.slotNum = slotNum;
 
                 if (rbfm.readRecord(tablesFileHandle, tablesDescriptor, rid, recordData) == 0) {
-                    if (rbfm.checkCondition(recordData, tablesDescriptor, "table-name", EQ_OP, tableName.c_str())) {
+                    unsigned tableNameLength = tableName.length();
+                    char value[sizeof(unsigned) + tableNameLength];
+                    memcpy(value, &tableNameLength, sizeof(unsigned));
+                    memcpy(value + sizeof(unsigned), tableName.c_str(), tableNameLength);
+                    if (rbfm.checkCondition(recordData, tablesDescriptor, "table-name", EQ_OP, value)) {
                         unsigned nullByteOffset = static_cast<size_t>(ceil(static_cast<double>(tablesDescriptor.size()) / 8));
                         memcpy(&tableId, recordData + nullByteOffset, sizeof(int));
                         rbfm.closeFile(tablesFileHandle);
@@ -487,7 +502,6 @@ namespace PeterDB {
     }
 
     RC RelationManager::getAttributes(const std::string &tableName, std::vector<Attribute> &attrs) {
-        std::cout << "Trying to read attribute from: " << tableName << std::endl;
         int tableId;
         if (findTableId(tableName, tableId) != 0) {
             std::cout << "Table " << tableName << " not found" << std::endl;

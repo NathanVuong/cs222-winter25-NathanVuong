@@ -1013,11 +1013,25 @@ namespace PeterDB {
                     }
                 }
                 else if (attribute.type == TypeVarChar) {
+                    /*
                     memcpy(&varCharLength, dataPtr, sizeof(unsigned));
                     std::string recordValue(dataPtr + sizeof(unsigned), varCharLength);
                     std::string conditionValue = (char*)value;
                     if (recordValue.empty()) {
                         return false;
+                    }
+                    */
+                    memcpy(&varCharLength, dataPtr, sizeof(unsigned));
+                    std::string recordValue(dataPtr + sizeof(unsigned), varCharLength);
+
+                    unsigned extractedLength;
+                    std::string conditionValue;
+                    if (value == nullptr) {
+                        conditionValue = (char*)value;
+                    }
+                    else {
+                        memcpy(&extractedLength, value, sizeof(unsigned));
+                        conditionValue.assign(static_cast<const char*>(value) + sizeof(unsigned), extractedLength);
                     }
                     switch (compOp) {
                         case EQ_OP: return recordValue == conditionValue;

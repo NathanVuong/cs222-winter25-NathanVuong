@@ -2,7 +2,6 @@
 #include "test/utils/rm_test_util.h"
 
 namespace PeterDBTesting {
-    /*
     TEST_F(RM_Catalog_Test, create_and_delete_tables) {
 
         // Try to delete the System Catalog.
@@ -1366,7 +1365,6 @@ namespace PeterDBTesting {
 
         }
     }
-    */
 
     TEST_F(RM_Catalog_Scan_Test_2, scan) {
         // Functions tested
@@ -1376,7 +1374,7 @@ namespace PeterDBTesting {
 
         size_t tupleSize;
         bufSize = 1000;
-        int numTuples = 10000;
+        int numTuples = 100000;
         inBuffer = malloc(bufSize);
         outBuffer = malloc(bufSize);
         std::vector<float> lats;
@@ -1415,7 +1413,6 @@ namespace PeterDBTesting {
         // Scan
         ASSERT_EQ(rm.scan(tableName, "", PeterDB::NO_OP, nullptr, attributes, rmsi), success)
                                     << "relationManager::scan() should succeed.";
-
         float latReturned, lngReturned;
         while (rmsi.getNextTuple(rid, outBuffer) != RM_EOF) {
             latReturned = *(float *) ((char *) outBuffer + 5);
@@ -1439,6 +1436,7 @@ namespace PeterDBTesting {
         char value[5] = {0, 0, 0, 0, 'A'};
         unsigned msgLength = 1;
         memcpy((char *) value, &msgLength, sizeof(unsigned));
+
         // Scan
         attributes = {"user_id"};
         ASSERT_EQ(rm.scan(tableName, "hash_tags", PeterDB::GT_OP, value, attributes, rmsi), success)
@@ -1456,7 +1454,6 @@ namespace PeterDBTesting {
         ASSERT_TRUE(user_ids.empty()) << "returned user_id does not match inserted";
     }
 
-    /*
     TEST_F(RM_Catalog_Scan_Test_2, scan_with_null) {
         // Functions tested
         // 1. insert 100,000 tuples - will nulls
@@ -2118,5 +2115,5 @@ namespace PeterDBTesting {
 
         checkPrintRecord("emp_name: Peter Anteater, age: 34, height: 175.3, salary: 24123.90, ssn: 123479765",
                          stream.str());
-    }*/
+    }
 } // namespace PeterDBTesting
