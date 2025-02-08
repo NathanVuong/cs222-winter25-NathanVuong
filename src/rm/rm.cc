@@ -153,6 +153,7 @@ namespace PeterDB {
 
     RC RelationManager::deleteCatalog() {
         if (!catalogExists) {
+            std::cout << "Catalog not found" << std::endl;
             return -1;
         }
 
@@ -160,6 +161,7 @@ namespace PeterDB {
         FileHandle tablesFileHandle;
 
         if (rbfm.openFile("Tables", tablesFileHandle) != 0) {
+            std::cout << "Tables file cannot be opened" << std::endl;
             return -1;
         }
 
@@ -177,6 +179,7 @@ namespace PeterDB {
         for (unsigned pageNum = 0; pageNum < numPages; pageNum++) {
             char page[PAGE_SIZE];
             if (tablesFileHandle.readPage(pageNum, page) != 0) {
+                std::cout << "Tables file page cannot be read: " << pageNum << std::endl;
                 return -1;
             }
 
@@ -184,8 +187,6 @@ namespace PeterDB {
             memcpy(&numSlots, page + PAGE_SIZE - sizeof(unsigned), sizeof(unsigned));
 
             for (unsigned slotNum = 0; slotNum < numSlots; slotNum++) {
-                // Don't delete Tables and Columns yet
-
                 rid.pageNum = pageNum;
                 rid.slotNum = slotNum;
 
@@ -200,6 +201,11 @@ namespace PeterDB {
 
                     std::string tableName(recordData + nullByteOffset + sizeof(int) + sizeof(int), tableNameLength);
 
+                    // Don't delete Tables and Columns yet
+                    if (tableName == "Tables" || tableName == "Columns") {
+                        continue;
+                    }
+
                     // Delete the table file
                     rbfm.destroyFile(tableName);
                 }
@@ -210,9 +216,11 @@ namespace PeterDB {
 
         // Now delete catalog files
         if (rbfm.destroyFile("Tables") != 0) {
+            std::cout << "Tables file cannot be destroyed" << std::endl;
             return -1;
         }
         if (rbfm.destroyFile("Columns") != 0) {
+            std::cout << "Columns file cannot be destroyed" << std::endl;
             return -1;
         }
         catalogExists = false;
