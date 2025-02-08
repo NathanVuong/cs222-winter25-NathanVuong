@@ -435,9 +435,11 @@ namespace PeterDB {
     }
 
     RC RelationManager::findTableId(std::string tableName, int &tableId) {
+        /*
         if (!catalogExists) {
             return -1;
         }
+        */
         RecordBasedFileManager &rbfm = RecordBasedFileManager::instance();
         FileHandle tablesFileHandle;
         std::vector<Attribute> tablesDescriptor = {
@@ -457,6 +459,7 @@ namespace PeterDB {
         for (unsigned pageNum = 0; pageNum < numPages; pageNum++) {
             char page[PAGE_SIZE];
             if (tablesFileHandle.readPage(pageNum, page) != 0) {
+                std::cout << "Error in reading page " << pageNum << std::endl;
                 return -1;
             }
 
@@ -478,7 +481,8 @@ namespace PeterDB {
             }
         }
 
-        rbfm.closeFile(tablesFileHandle);
+        // rbfm.closeFile(tablesFileHandle);
+        std::cout << "Table " << tableName << " not found" << std::endl;
         return -1;
     }
 
