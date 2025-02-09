@@ -154,7 +154,7 @@ namespace PeterDB {
     RC RelationManager::deleteCatalog() {
         if (!catalogExists) {
             std::cout << "Catalog not found" << std::endl;
-            return -1;
+            return 0;
         }
 
         RecordBasedFileManager &rbfm = RecordBasedFileManager::instance();
