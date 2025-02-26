@@ -963,10 +963,12 @@ namespace PeterDB {
         IndexManager &im = IndexManager::instance();
         std::string scanIteratorFileName = ixFileHandle.PFHandle->fileName + "_scan";
         IXFileHandle *newIXFileHandle = new IXFileHandle();
+        im.createFile(scanIteratorFileName);
+        /*
         if (im.createFile(scanIteratorFileName) == -1) {
             std::cerr << "File " << scanIteratorFileName << " creation failed." << std::endl;
             return -1;
-        }
+        } */
         if (im.openFile(scanIteratorFileName, *newIXFileHandle) == -1) {
             std::cerr << "File " << scanIteratorFileName << " open failed." << std::endl;
             return -1;
@@ -1301,9 +1303,9 @@ namespace PeterDB {
     }
 
     RC IX_ScanIterator::initialize(std::string fileName, const Attribute &attribute, IXFileHandle &ixFileHandle) {
-        //this->currentPage = 0;
-        //this->currentKeyIndex = 0;
-        //this->currentRIDIndex = 0;
+        this->currentPage = 0;
+        this->currentKeyIndex = 0;
+        this->currentRIDIndex = 0;
         this->fileName = std::move(fileName);
         this->attribute = attribute;
         this->ixFileHandle = &ixFileHandle;
