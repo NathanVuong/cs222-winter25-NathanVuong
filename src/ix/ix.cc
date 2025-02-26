@@ -940,6 +940,7 @@ namespace PeterDB {
         return file.good();
     }
 
+    // Helper function to copy file
     RC IndexManager::copyFile(const std::string &sourceFile, const std::string &destFile) {
         IXFileHandle srcHandle, destHandle;
         if (openFile(sourceFile, srcHandle) == -1 || openFile(destFile, destHandle) == -1) {
