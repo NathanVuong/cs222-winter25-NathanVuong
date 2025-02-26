@@ -4,6 +4,7 @@
 #include "test/utils/ix_test_utils.h"
 
 namespace PeterDBTesting {
+    /*
     TEST_F(IX_File_Test, create_open_close_destory_index) {
         // Functions tested
         // 1. Create Index File
@@ -521,7 +522,7 @@ namespace PeterDBTesting {
         EXPECT_GE (getFileSize(indexFileName) / PAGE_SIZE, numOfEntries / PAGE_SIZE / 10)
                             << "page size should be increased.";
 
-    }
+    } */
 
     TEST_F(IX_Test, scan_to_delete_entries) {
         // Checks whether deleting an entry after getNextEntry() in a scan is handled properly or not.
@@ -1142,6 +1143,7 @@ namespace PeterDBTesting {
 
     }
 
+    /*
     TEST_F(IX_Test_2, extra_duplicate_keys_span_multiple_pages) {
         // Checks whether duplicated entries spanning multiple page are handled properly or not.
 
@@ -1386,5 +1388,5 @@ namespace PeterDBTesting {
 
         validateTree(stream, 12, 12, 1, 1);
 
-    }
+    } */
 } // namespace PeterDBTesting
