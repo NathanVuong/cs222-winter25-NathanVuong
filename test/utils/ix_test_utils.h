@@ -9,6 +9,8 @@
 #include "gtest/gtest.h"
 #include "test/utils/general_test_utils.h"
 #include "test/utils/json.hpp"
+#include <glog/logging.h>
+
 
 #define EXPECT_IN_RANGE(VAL, MIN, MAX) \
     EXPECT_GE((VAL), (MIN));           \
