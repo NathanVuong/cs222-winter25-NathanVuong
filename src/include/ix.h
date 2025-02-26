@@ -63,6 +63,8 @@ namespace PeterDB {
         // Delete an entry from the given index that is indicated by the given ixFileHandle.
         RC deleteEntry(IXFileHandle &ixFileHandle, const Attribute &attribute, const void *key, const RID &rid);
 
+        RC copyFile(const std::string &sourceFile, const std::string &destFile);
+
         // Initialize and IX_ScanIterator to support a range search
         RC scan(IXFileHandle &ixFileHandle,
                 const Attribute &attribute,

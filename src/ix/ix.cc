@@ -410,7 +410,6 @@ namespace PeterDB {
         ixFileHandle.PFHandle->readPageCounter -= 1;
         unsigned numEntries = getNumEntries(pageData);
 
-
         // Iterate through looking for a matching key (if one exists) and where to insert RID
         // Also calculate how much space
         bool keyInFirstHalf = true;
@@ -564,12 +563,7 @@ namespace PeterDB {
             }
             ixFileHandle.PFHandle->writePage(pageNumToInsertTo, pageData);
             ixFileHandle.PFHandle->appendPage(newPageData);
-            // Update parent
-            /*
-            unsigned keyToPushUp;
-            memcpy(&keyToPushUp, newPageData + PAGE_METADATA, sizeof(unsigned));
-            updateInternal(ixFileHandle, attribute, &keyToPushUp, pageNumToInsertTo, newSiblingPage, parentPageNum);
-            */
+
             if (attribute.type == TypeInt || attribute.type == TypeReal) {
                 unsigned keyToPushUp;
                 memcpy(&keyToPushUp, newPageData + PAGE_METADATA, sizeof(unsigned));
@@ -946,6 +940,25 @@ namespace PeterDB {
         return file.good();
     }
 
+    RC IndexManager::copyFile(const std::string &sourceFile, const std::string &destFile) {
+        IXFileHandle srcHandle, destHandle;
+        if (openFile(sourceFile, srcHandle) == -1 || openFile(destFile, destHandle) == -1) {
+            return -1;
+        }
+
+        unsigned numPages = srcHandle.PFHandle->getNumberOfPages();
+        char pageData[PAGE_SIZE];
+
+        for (unsigned i = 0; i < numPages; i++) {
+            srcHandle.PFHandle->readPage(i, pageData);
+            destHandle.PFHandle->appendPage(pageData);
+        }
+
+        closeFile(srcHandle);
+        closeFile(destHandle);
+        return 0;
+    }
+
     RC IndexManager::scan(IXFileHandle &ixFileHandle,
                           const Attribute &attribute,
                           const void *lowKey,
@@ -974,6 +987,12 @@ namespace PeterDB {
             return -1;
         }
         ix_ScanIterator.initialize(scanIteratorFileName, attribute, *newIXFileHandle);
+        // Don't waste time building a replica
+        if (lowKey == nullptr && highKey == nullptr) {
+            im.copyFile(ixFileHandle.PFHandle->fileName, scanIteratorFileName);
+            ixFileHandle.PFHandle->readPageCounter += 2;
+            return 0;
+        }
 
         // Locate the starting leaf page based on lowKey
         unsigned currentPageNum;
