@@ -115,6 +115,14 @@ namespace PeterDB {
         unsigned currentPage;
         unsigned currentKeyIndex;
         unsigned currentRIDIndex;
+
+        // New
+        unsigned writePage;
+        unsigned readPage;
+        unsigned writeOffset;
+        unsigned readOffset;
+        unsigned currentRecord;
+        bool containsData = false;
         Attribute attribute;
     };
 

@@ -33,7 +33,9 @@ namespace PeterDB {
         // Check if file exists and its size
         if (ixFileHandle.PFHandle == nullptr || ixFileHandle.PFHandle->getNumberOfPages() >= 1) {
             std::cerr << "IndexManager::initializeIndex: Fail.\n";
-            return -1;
+            std::cerr << ixFileHandle.PFHandle->fileName << std::endl;
+            std::cerr << ixFileHandle.PFHandle->getNumberOfPages() << " pages.\n" << std::endl;
+            return 0;
         }
 
         // Append page that contains the page number of the root node which starts at page 1
@@ -940,30 +942,23 @@ namespace PeterDB {
         return file.good();
     }
 
-    // Helper function to copy file
-    RC IndexManager::copyFile(const std::string &sourceFile, const std::string &destFile) {
-        IXFileHandle srcHandle, destHandle;
+    // ?
+    RC IndexManager::copyFile(const std::string &srcFile, const std::string &destFile) {
+        std::ifstream src(srcFile, std::ios::binary);
+        std::ofstream dest(destFile, std::ios::binary);
 
-        if (openFile(sourceFile, srcHandle) == -1 || openFile(destFile, destHandle) == -1) {
-            return -1;
+        if (!src || !dest) {
+            std::cerr << "Error: Unable to copy file " << srcFile << " to " << destFile << std::endl;
+            return -1;  // Return error code
         }
 
-        unsigned numPages = srcHandle.PFHandle->getNumberOfPages();
-        char pageData[PAGE_SIZE];
+        // Move read position past the first 4096 bytes (one page)
+        src.seekg(4096, std::ios::beg);
 
-        for (unsigned i = 0; i < numPages; i++) {
-            srcHandle.PFHandle->readPage(i, pageData);
-            destHandle.PFHandle->appendPage(pageData);
-        }
+        // Copy the rest of the file
+        dest << src.rdbuf();
 
-        // Explicitly set root page and metadata in copied file
-        unsigned rootPageNum = getRootPageNum(srcHandle);
-        setRootPageNum(destHandle, rootPageNum);
-
-        closeFile(srcHandle);
-        closeFile(destHandle);
-
-        return 0;
+        return 0;  // Return success
     }
 
 
@@ -974,26 +969,30 @@ namespace PeterDB {
                           bool lowKeyInclusive,
                           bool highKeyInclusive,
                           IX_ScanIterator &ix_ScanIterator) {
-        // Check that fileHandle is legit
         if (!fileExists(ixFileHandle.PFHandle->fileName)) {
             std::cerr << "File " << ixFileHandle.PFHandle->fileName << " not found." << std::endl;
             return -1;
         }
-
         // Initialize scanner
         IndexManager &im = IndexManager::instance();
         std::string scanIteratorFileName = ixFileHandle.PFHandle->fileName + "_scan";
         IXFileHandle *newIXFileHandle = new IXFileHandle();
         im.createFile(scanIteratorFileName);
-        ix_ScanIterator.initialize(scanIteratorFileName, attribute, *newIXFileHandle);
         im.openFile(scanIteratorFileName, *newIXFileHandle);
+        ix_ScanIterator.initialize(scanIteratorFileName, attribute, *newIXFileHandle);
+
         /*
         if (lowKey == nullptr && highKey == nullptr) {
-            newIXFileHandle->initialized = true;
-            if (im.copyFile(ixFileHandle.PFHandle->fileName, scanIteratorFileName) == -1) {
+            if (copyFile(ixFileHandle.PFHandle->fileName, scanIteratorFileName) == false) {
                 return -1;
             }
+            newIXFileHandle->initialized = true;
+            newIXFileHandle->PFHandle->appendPageCounter = ixFileHandle.PFHandle->appendPageCounter;
+            newIXFileHandle->PFHandle->readPageCounter = ixFileHandle.PFHandle->readPageCounter;
+            newIXFileHandle->PFHandle->writePageCounter = ixFileHandle.PFHandle->writePageCounter;
             ixFileHandle.PFHandle->readPageCounter += 2; // Adjust counters
+            printBTree(*newIXFileHandle, attribute, std::cout);
+            ix_ScanIterator.initialize(scanIteratorFileName, attribute, *newIXFileHandle);
             return 0;
         } */
 
@@ -1303,27 +1302,12 @@ namespace PeterDB {
         }
     }
 
-    /*
-    // Helper function to print RIDs
-    std::string IndexManager::printRIDs(const std::vector<RID>& rids) {
-        std::ostringstream oss;
-        oss << "[";
-        for (size_t i = 0; i < rids.size(); ++i) {
-            oss << "(" << rids[i].pageNum << "," << rids[i].slotNum << ")";
-            if (i < rids.size() - 1) {
-                oss << ",";
-            }
-        }
-        oss << "]";
-        return oss.str();
-    } */
-
     IX_ScanIterator::IX_ScanIterator() {
     }
 
     IX_ScanIterator::~IX_ScanIterator() {
     }
-
+    /*
     RC IX_ScanIterator::initialize(std::string fileName, const Attribute &attribute, IXFileHandle &ixFileHandle) {
         this->currentPage = 0;
         this->currentKeyIndex = 0;
@@ -1433,6 +1417,160 @@ namespace PeterDB {
             currentKeyIndex = 0;
             currentRIDIndex = 0;
             fileName.clear();
+        }
+        return 0;
+    } */
+    RC IX_ScanIterator::initialize(std::string fileName, const Attribute &attribute, IXFileHandle &ixFileHandle) {
+        this->fileName = std::move(fileName);;
+        this->attribute = attribute;
+        this->ixFileHandle = &ixFileHandle;
+        // Store num of records at start
+        this->writePage = -1;
+        this->writeOffset = sizeof(unsigned);
+        this->readPage = -1;
+        this->readOffset = sizeof(unsigned);
+        this->containsData = false;
+
+        if (!this->ixFileHandle->PFHandle) {
+            std::cerr << "Failed to access PagedFileManager handle for file: " << fileName << std::endl;
+            return -1;
+        }
+        return 0;
+    }
+
+    RC IX_ScanIterator::insertScanEntry(const void *key, const RID &rid) {
+        if (!this->ixFileHandle->PFHandle) return -1; // Ensure valid file handle
+
+        char pageData[PAGE_SIZE];
+        unsigned keySize;
+        if (attribute.type == TypeInt || attribute.type == TypeReal) {
+            keySize = sizeof(unsigned);
+        } else if (attribute.type == TypeVarChar) {
+            unsigned keyStrLen;
+            memcpy(&keyStrLen, key, sizeof(unsigned));
+            keySize = sizeof(unsigned) + keyStrLen;
+        }
+
+        // If it's the first write or the page is full, allocate a new page
+        bool appendingNew = false;
+        if (this->writePage == -1 || this->writeOffset + keySize + sizeof(unsigned) * 2 > PAGE_SIZE) {
+            this->writePage += 1;
+            memset(pageData, 0, PAGE_SIZE);
+            this->writeOffset = sizeof(unsigned); // Reserve space for record count
+            appendingNew = true;
+            unsigned numRecords = 0;
+            memcpy(pageData, &numRecords, sizeof(unsigned)); // Initialize record count
+        } else {
+            this->ixFileHandle->PFHandle->readPage(this->writePage, pageData);
+        }
+
+        char *writePtr = pageData + this->writeOffset;
+        // Store key correctly
+        if (attribute.type == TypeInt || attribute.type == TypeReal) {
+            memcpy(writePtr, key, keySize);
+            writePtr += keySize;
+        } else if (attribute.type == TypeVarChar) {
+            unsigned keyStrLen;
+            memcpy(&keyStrLen, key, sizeof(unsigned));  // Extract key length
+            memcpy(writePtr, &keyStrLen, sizeof(unsigned));  // Store key length
+            writePtr += sizeof(unsigned);
+            memcpy(writePtr, reinterpret_cast<const char*>(key) + sizeof(unsigned), keyStrLen);  // Store string
+            writePtr += keyStrLen;
+        }
+
+        // Insert RID
+        memcpy(writePtr, &rid.pageNum, sizeof(unsigned));
+        memcpy(writePtr + sizeof(unsigned), &rid.slotNum, sizeof(unsigned));
+        this->writeOffset += keySize + sizeof(unsigned) * 2;
+
+        // Update the record count
+        unsigned numRecords;
+        memcpy(&numRecords, pageData, sizeof(unsigned));
+        numRecords += 1;
+        memcpy(pageData, &numRecords, sizeof(unsigned));
+
+        if (appendingNew) {
+            this->ixFileHandle->PFHandle->appendPage(pageData);
+        } else {
+            this->ixFileHandle->PFHandle->writePage(this->writePage, pageData);
+        }
+        containsData = true;
+        return 0;
+    }
+
+    RC IX_ScanIterator::getNextEntry(RID &rid, void *key) {
+        if (!this->ixFileHandle->PFHandle) return -1; // Ensure valid file handle
+        if (!containsData) return IX_EOF;
+        char pageData[PAGE_SIZE];
+
+        // If this is the first call, start at the first page
+        if (this->readPage == -1) {
+            this->readPage = 0;
+            this->readOffset = sizeof(unsigned); // Skip record count
+            this->currentRecord = 0;
+        }
+
+        while (true) {
+            this->ixFileHandle->PFHandle->readPage(this->readPage, pageData);
+            unsigned numRecords;
+            memcpy(&numRecords, pageData, sizeof(unsigned));
+            if (numRecords == 0) {
+                return IX_EOF;
+            }
+            // If all records on this page have been read, move to the next page
+            if (this->currentRecord >= numRecords || this->readOffset >= PAGE_SIZE) {
+                unsigned totalPages = this->ixFileHandle->PFHandle->getNumberOfPages();
+                if (this->readPage + 1 >= totalPages) return IX_EOF; // No more pages left
+
+                // Move to the next page
+                this->readPage += 1;
+                this->readOffset = sizeof(unsigned); // Skip record count in new page
+                this->currentRecord = 0;
+                continue; // Load new page
+            }
+
+            // Read key
+            char *readPtr = pageData + this->readOffset;
+            unsigned keySize;
+            if (attribute.type == TypeInt || attribute.type == TypeReal) {
+                keySize = sizeof(unsigned);
+            } else if (attribute.type == TypeVarChar) {
+                unsigned keyStrLen;
+                memcpy(&keyStrLen, readPtr, sizeof(unsigned));
+                keySize = sizeof(unsigned) + keyStrLen;
+            }
+
+            memcpy(key, readPtr, keySize);
+            readPtr += keySize;
+
+            // Read RID
+            memcpy(&rid.pageNum, readPtr, sizeof(unsigned));
+            memcpy(&rid.slotNum, readPtr + sizeof(unsigned), sizeof(unsigned));
+
+            // Update offsets
+            this->readOffset += keySize + sizeof(unsigned) * 2;
+            this->currentRecord++;
+
+            return 0;
+        }
+    }
+
+    RC IX_ScanIterator::close() {
+        if (this->ixFileHandle) {
+            IndexManager &im = IndexManager::instance();
+            im.closeFile(*this->ixFileHandle);
+            im.destroyFile(this->fileName);
+            delete ixFileHandle;
+            ixFileHandle = nullptr;
+            currentPage = 0;
+            currentKeyIndex = 0;
+            currentRIDIndex = 0;
+            fileName.clear();
+
+            writePage = -1;
+            writeOffset = sizeof(unsigned);
+            readPage = -1;
+            readOffset = sizeof(unsigned);
         }
         return 0;
     }
