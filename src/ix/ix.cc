@@ -32,9 +32,9 @@ namespace PeterDB {
     RC IndexManager::initializeIndex(IXFileHandle &ixFileHandle) {
         // Check if file exists and its size
         if (ixFileHandle.PFHandle == nullptr || ixFileHandle.PFHandle->getNumberOfPages() >= 1) {
-            std::cerr << "IndexManager::initializeIndex: Fail.\n";
-            std::cerr << ixFileHandle.PFHandle->fileName << std::endl;
-            std::cerr << ixFileHandle.PFHandle->getNumberOfPages() << " pages.\n" << std::endl;
+            // std::cerr << "IndexManager::initializeIndex: Fail.\n";
+            // std::cerr << ixFileHandle.PFHandle->fileName << std::endl;
+            // std::cerr << ixFileHandle.PFHandle->getNumberOfPages() << " pages.\n" << std::endl;
             return 0;
         }
 
@@ -981,21 +981,6 @@ namespace PeterDB {
         im.openFile(scanIteratorFileName, *newIXFileHandle);
         ix_ScanIterator.initialize(scanIteratorFileName, attribute, *newIXFileHandle);
 
-        /*
-        if (lowKey == nullptr && highKey == nullptr) {
-            if (copyFile(ixFileHandle.PFHandle->fileName, scanIteratorFileName) == false) {
-                return -1;
-            }
-            newIXFileHandle->initialized = true;
-            newIXFileHandle->PFHandle->appendPageCounter = ixFileHandle.PFHandle->appendPageCounter;
-            newIXFileHandle->PFHandle->readPageCounter = ixFileHandle.PFHandle->readPageCounter;
-            newIXFileHandle->PFHandle->writePageCounter = ixFileHandle.PFHandle->writePageCounter;
-            ixFileHandle.PFHandle->readPageCounter += 2; // Adjust counters
-            printBTree(*newIXFileHandle, attribute, std::cout);
-            ix_ScanIterator.initialize(scanIteratorFileName, attribute, *newIXFileHandle);
-            return 0;
-        } */
-
         // Locate the starting leaf page based on lowKey
         unsigned currentPageNum;
         if (lowKey == nullptr) {
@@ -1307,119 +1292,7 @@ namespace PeterDB {
 
     IX_ScanIterator::~IX_ScanIterator() {
     }
-    /*
-    RC IX_ScanIterator::initialize(std::string fileName, const Attribute &attribute, IXFileHandle &ixFileHandle) {
-        this->currentPage = 0;
-        this->currentKeyIndex = 0;
-        this->currentRIDIndex = 0;
-        this->fileName = std::move(fileName);
-        this->attribute = attribute;
-        this->ixFileHandle = &ixFileHandle;
-        IndexManager &im = IndexManager::instance();
-        return 0;
-    }
 
-    RC IX_ScanIterator::insertScanEntry(const void *key, const RID &rid) {
-        IndexManager &im = IndexManager::instance();
-        im.insertEntry(*ixFileHandle, this->attribute, key, rid);
-        return 0;
-    }
-
-    RC IX_ScanIterator::getNextEntry(RID &rid, void *key) {
-        if (!this->ixFileHandle) return -1; // No file handle means no entries
-        IndexManager &im = IndexManager::instance();
-        char pageData[PAGE_SIZE];
-        // If this is the first call, start at the leftmost leaf node
-        if (this->currentPage == 0) {
-            IndexManager &im = IndexManager::instance();
-            this->currentPage = im.getRootPageNum(*this->ixFileHandle);
-            // Traverse to the leftmost leaf node
-            while (true) {
-                this->ixFileHandle->PFHandle->readPage(this->currentPage, pageData);
-                if (im.isLeafNode(pageData)) break;
-
-                // Internal node: get the leftmost child
-                unsigned leftmostChild;
-                memcpy(&leftmostChild, pageData + PAGE_METADATA, sizeof(unsigned));
-                this->currentPage = leftmostChild;
-            }
-        }
-
-        this->ixFileHandle->PFHandle->readPage(this->currentPage, pageData);
-
-        unsigned numEntries = im.getNumEntries(pageData);
-        if (this->currentKeyIndex >= numEntries) { // If we exhausted the page, move to the next
-            unsigned nextSiblingPage;
-            memcpy(&nextSiblingPage, pageData + PAGE_SIZE - sizeof(unsigned), sizeof(unsigned));
-            if (nextSiblingPage == 0) return IX_EOF; // No more pages
-            this->currentPage = nextSiblingPage;
-            this->ixFileHandle->PFHandle->readPage(this->currentPage, pageData);
-            this->currentKeyIndex = 0;
-            this->currentRIDIndex = 0;
-        }
-
-        // Locate the key and its RID list
-        char *pageDataPtr = pageData + PAGE_METADATA;
-        for (unsigned i = 0; i < this->currentKeyIndex; i++) {
-            if (this->attribute.type == TypeInt || this->attribute.type == TypeReal) {
-                pageDataPtr += sizeof(int);
-            } else if (this->attribute.type == TypeVarChar) {
-                unsigned strLen;
-                memcpy(&strLen, pageDataPtr, sizeof(unsigned));
-                pageDataPtr += sizeof(unsigned) + strLen;
-            }
-            unsigned numRIDs;
-            memcpy(&numRIDs, pageDataPtr, sizeof(unsigned));
-            pageDataPtr += sizeof(unsigned) + numRIDs * (sizeof(unsigned) * 2);
-        }
-
-        // Extract the key
-        if (this->attribute.type == TypeInt) {
-            memcpy(key, pageDataPtr, sizeof(int));
-            pageDataPtr += sizeof(int);
-        } else if (this->attribute.type == TypeReal) {
-            memcpy(key, pageDataPtr, sizeof(float));
-            pageDataPtr += sizeof(float);
-        } else if (this->attribute.type == TypeVarChar) {
-            unsigned strLen;
-            memcpy(&strLen, pageDataPtr, sizeof(unsigned));
-            memcpy(key, pageDataPtr, sizeof(unsigned) + strLen);
-            pageDataPtr += sizeof(unsigned) + strLen;
-        }
-
-        // Extract the RID
-        unsigned numRIDs;
-        memcpy(&numRIDs, pageDataPtr, sizeof(unsigned));
-        pageDataPtr += sizeof(unsigned);
-        //char *ridListPtr = pageDataPtr + ((numRIDs - 1) * 2 * sizeof(unsigned)) - (this->currentRIDIndex * (sizeof(unsigned) * 2));
-        char *ridListPtr = pageDataPtr + (this->currentRIDIndex * (sizeof(unsigned) * 2));
-
-        memcpy(&rid.pageNum, ridListPtr, sizeof(unsigned));
-        memcpy(&rid.slotNum, ridListPtr + sizeof(unsigned), sizeof(unsigned));
-        // Update iterator position
-        this->currentRIDIndex++;
-        if (this->currentRIDIndex >= numRIDs) {
-            this->currentRIDIndex = 0;
-            this->currentKeyIndex++;
-        }
-
-        return 0;
-    }
-
-    RC IX_ScanIterator::close() {
-        if (this->ixFileHandle) {
-            IndexManager &im = IndexManager::instance();
-            im.closeFile(*this->ixFileHandle);
-            im.destroyFile(this->fileName);
-            delete ixFileHandle;
-            ixFileHandle = nullptr;
-            currentPage = 0;
-            currentKeyIndex = 0;
-            currentRIDIndex = 0;
-            fileName.clear();
-        }
-        return 0;
-    } */
     RC IX_ScanIterator::initialize(std::string fileName, const Attribute &attribute, IXFileHandle &ixFileHandle) {
         this->fileName = std::move(fileName);;
         this->attribute = attribute;

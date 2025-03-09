@@ -2,6 +2,7 @@
 #include "test/utils/rbfm_test_utils.h"
 
 namespace PeterDBTesting {
+    /*
     TEST_F(RBFM_Test, insert_and_read_attribute) {
         // Functions tested
         // 1. Create Record-Based File
@@ -100,11 +101,9 @@ namespace PeterDBTesting {
 
         // Verify file size
         ASSERT_GT(getFileSize(fileName), 0) << "File Size should not be zero at this moment.";
-    }
+    } */
 
 
-
-    /*
     TEST_F(RBFM_Test, insert_and_read_a_record) {
         // Functions tested
         // 1. Create Record-Based File

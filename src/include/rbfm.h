@@ -158,6 +158,25 @@ namespace PeterDB {
         bool checkCondition(const void *recordData, const std::vector<Attribute> &recordDescriptor,
                             const std::string &conditionAttribute, CompOp compOp, const void *value);
 
+        // For QE filter file naming
+        int getFilterFileNum() { return filterFileNum; }
+        void incrementFilterFileNum() { filterFileNum++; }
+
+        int getProjectFileNum() { return projectFileNum; }
+        void incrementProjectFileNum() { projectFileNum++; }
+
+        int getBNLJoinFIleNum() { return bnljoinFileNum; }
+        void incrementBNLJoinFIleNum() { bnljoinFileNum++; }
+
+        int getINLJoinFIleNum() { return inljoinFileNum; }
+        void incrementINLJoinFIleNum() { inljoinFileNum++; }
+
+    private:
+        int filterFileNum = 0;
+        int projectFileNum = 0;
+        int bnljoinFileNum = 0;
+        int inljoinFileNum = 0;
+
     protected:
         RecordBasedFileManager();                                                   // Prevent construction
         ~RecordBasedFileManager();                                                  // Prevent unwanted destruction

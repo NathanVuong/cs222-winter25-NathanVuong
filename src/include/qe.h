@@ -114,6 +114,7 @@ namespace PeterDB {
                   const char *alias = NULL) : rm(rm) {
             // Set members
             this->tableName = tableName;
+            //this->tableName = tableName + "_" + attrName + ".idx";
             this->attrName = attrName;
 
             // Get Attributes from RM
@@ -149,6 +150,7 @@ namespace PeterDB {
             for (Attribute &attribute : attributes) {
                 attribute.name = tableName + "." + attribute.name;
             }
+            return 0;
         };
 
         ~IndexScan() override {
@@ -169,6 +171,9 @@ namespace PeterDB {
 
         // For attribute in std::vector<Attribute>, name it as rel.attr
         RC getAttributes(std::vector<Attribute> &attrs) const override;
+    private:
+        std::vector<Attribute> recordDescriptor;
+        RBFM_ScanIterator *rbfmScanIterator;
     };
 
     class Project : public Iterator {
@@ -182,6 +187,9 @@ namespace PeterDB {
 
         // For attribute in std::vector<Attribute>, name it as rel.attr
         RC getAttributes(std::vector<Attribute> &attrs) const override;
+    private:
+        std::vector<Attribute> recordDescriptor;
+        RBFM_ScanIterator *rbfmScanIterator;
     };
 
     class BNLJoin : public Iterator {
@@ -200,6 +208,9 @@ namespace PeterDB {
 
         // For attribute in std::vector<Attribute>, name it as rel.attr
         RC getAttributes(std::vector<Attribute> &attrs) const override;
+    private:
+        std::vector<Attribute> recordDescriptor;
+        RBFM_ScanIterator *rbfmScanIterator;
     };
 
     class INLJoin : public Iterator {
@@ -216,6 +227,9 @@ namespace PeterDB {
 
         // For attribute in std::vector<Attribute>, name it as rel.attr
         RC getAttributes(std::vector<Attribute> &attrs) const override;
+    private:
+        std::vector<Attribute> recordDescriptor;
+        RBFM_ScanIterator *rbfmScanIterator;
     };
 
     // 10 extra-credit points
@@ -262,6 +276,11 @@ namespace PeterDB {
         // E.g. Relation=rel, attribute=attr, aggregateOp=MAX
         // output attrName = "MAX(rel.attr)"
         RC getAttributes(std::vector<Attribute> &attrs) const override;
+
+        private:
+            std::vector<Attribute> recordDescriptor;
+            float floatAgg = 0.0;
+            bool tupleParsed = false;
     };
 } // namespace PeterDB
 

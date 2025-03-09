@@ -1059,4 +1059,4 @@ namespace PeterDB {
         }
         return false;
     }
-} // namespace PeterDB
+}

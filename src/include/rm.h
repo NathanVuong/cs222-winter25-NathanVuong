@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "rbfm.h"
+#include "ix.h"
 
 namespace PeterDB {
 #define RM_EOF (-1)  // end of a scan operator
@@ -34,6 +35,8 @@ namespace PeterDB {
         RM_IndexScanIterator();    // Constructor
         ~RM_IndexScanIterator();    // Destructor
 
+        IX_ScanIterator ix_ScanIterator;
+
         // "key" follows the same format as in IndexManager::insertEntry()
         RC getNextEntry(RID &rid, void *key);    // Get next matching entry
         RC close();                              // Terminate index scan
@@ -52,6 +55,8 @@ namespace PeterDB {
 
         RC createTable(const std::string &tableName, const std::vector<Attribute> &attrs);
 
+        void deleteTableIndexes(const std::string &tableName);
+
         RC deleteTable(const std::string &tableName);
 
         RC findTableId(std::string tableName, int &tableId);
@@ -60,7 +65,12 @@ namespace PeterDB {
 
         RC insertTuple(const std::string &tableName, const void *data, RID &rid);
 
+        void insertTupleIndexes(const std::string &tableName, std::vector<Attribute> recordDescriptor, const void *data,
+                                const RID &rid);
+
         RC deleteTuple(const std::string &tableName, const RID &rid);
+
+        void deleteTupleIndexes(const std::string &tableName, std::vector<Attribute> recordDescriptor, const RID &rid);
 
         RC updateTuple(const std::string &tableName, const void *data, const RID &rid);
 

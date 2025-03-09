@@ -130,9 +130,9 @@ namespace PeterDB {
         unsigned offset = PAGE_SIZE * pageNum + PAGE_SIZE; // Reserve space for first page
         std::ifstream file(this->fileName, std::ios::binary);
         if (!file.is_open()) {
-            // std::cout << "FileHandle::readPage() file is not open" << std::endl;
             return -1;
         }
+
         // Check page number is valid (remember exclude first metadata page)
         unsigned totalPages = getNumberOfPages();
         if (pageNum >= (totalPages)) {
@@ -235,6 +235,4 @@ namespace PeterDB {
         file.close();
         return 0;
     }
-
-
-} // namespace PeterDB
+}

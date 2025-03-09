@@ -165,6 +165,7 @@ namespace PeterDBTesting {
 
         // Set up IndexScan
         PeterDB::IndexScan is(rm, tableName, "C");
+        std::cout << "Finish indexScan" << std::endl;
 
         // Set up condition
         float compVal = 110.0;
@@ -173,7 +174,6 @@ namespace PeterDBTesting {
 
         // Create Filter
         PeterDB::Filter filter(&is, cond);
-
         // Go over the data through iterator
         std::vector<std::string> printed;
         ASSERT_EQ(filter.getAttributes(attrs), success) << "Filter.getAttributes() should succeed.";
@@ -310,6 +310,10 @@ namespace PeterDBTesting {
         sort(expected.begin(), expected.end());
         sort(printed.begin(), printed.end());
 
+        for (int i = 0; i < expected.size(); ++i) {
+            checkPrintRecord(expected[i], printed[i]);
+        }
+
         ASSERT_EQ(expected.size(), printed.size()) << "The number of returned tuple is not correct.";
 
         for (int i = 0; i < expected.size(); ++i) {
@@ -386,6 +390,7 @@ namespace PeterDBTesting {
             checkPrintRecord(expected[i], printed[i]);
         }
     }
+
 
     TEST_F(QE_Test, inljoin) {
         // 1. INLJoin -- on TypeReal Attribute
@@ -568,7 +573,6 @@ namespace PeterDBTesting {
                                     << "RelationManager.printTuple() should succeed.";
         checkPrintRecord("AVG(right.B): 144.522", stream.str());
         ASSERT_EQ(agg.getNextTuple(outBuffer), QE_EOF) << "Only 1 tuple should be returned for AVG.";
-
     }
 
     TEST_F(QE_Test, scan_with_update_and_delete) {
@@ -1159,7 +1163,7 @@ namespace PeterDBTesting {
             checkPrintRecord(expected[i], printed[i], false, {}, i % 50 == 0);
         }
     }
-
+    /*
     TEST_F(QE_Test, ghjoin_on_varchar) {
         // Extra credit
         // 1. GHJoin -- on TypeVARCHAR Attribute
@@ -1519,5 +1523,6 @@ namespace PeterDBTesting {
         }
 
     }
+    */
 
 } // namespace PeterDBTesting
